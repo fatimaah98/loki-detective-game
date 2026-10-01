@@ -99,6 +99,7 @@ export class CrimeScene {
     rope.position.set(this.center.x, neckY + len / 2, this.center.z);
     rope.castShadow = true;
     this.group.add(rope);
+    this.ropeMesh = rope;
 
     // قلاب/اتصال سقف
     const hook = new THREE.Mesh(
@@ -135,6 +136,7 @@ export class CrimeScene {
     g.rotation.y = 0.4;
     g.position.set(this.center.x + 0.5, 0.22, this.center.z + 0.45);
     this.group.add(g);
+    this.tippedChairGroup = g;
   }
 
   // جزئیات ظریف صحنه: دکمه لباس کنار میز، برگه‌ای روی زمین
@@ -159,6 +161,7 @@ export class CrimeScene {
     paper.scale.set(0.21, 0.29, 1);
     paper.position.set(this.center.x - 0.7, 0.015, this.center.z + 0.6);
     this.group.add(paper);
+    this.messageMesh = paper;
   }
 
   dispose() {

@@ -67,6 +67,11 @@ export class Assets {
       roughness: 0.4
     });
     m.greenShade = this._std(0x14472e, { roughness: 0.5, metalness: 0.1 });
+    m.brick = this._std(0x26302a, { roughness: 0.95 });
+    m.frame = this._std(0x24170e, { roughness: 0.72 });
+    m.leatherChair = this._std(0x42251b, { roughness: 0.58 });
+    m.paperMuted = this._std(0xffffff, { map: Textures.paper(5), roughness: 0.96 });
+    m.darkMetal = this._std(0x29231b, { roughness: 0.48, metalness: 0.58 });
     m.glass = new THREE.MeshStandardMaterial({
       color: COLORS.glass,
       roughness: 0.1,

@@ -17,12 +17,15 @@ export class Player {
 
     this.position = new THREE.Vector3(2.2, PLAYER.eyeHeight, 2.6);
     this.velocity = new THREE.Vector3();
-    this.yaw = Math.PI; // رو به داخل اتاق
+    this.yaw = -2.65; // نگاه آغازین به مرکز اتاق و صحنه جرم
     this.pitch = 0;
 
     this._forward = new THREE.Vector3();
     this._right = new THREE.Vector3();
     this._wish = new THREE.Vector3();
+    this._stepDistance = 0;
+    this._stepSide = 0;
+    this.onFootstep = null;
 
     this._syncCamera();
   }
@@ -74,8 +77,23 @@ export class Player {
     this.velocity.z += (this._wish.z - this.velocity.z) * Math.min(1, rate * dt);
 
     // ---- حرکت + برخورد (هر محور جداگانه برای لغزیدن روی دیوار) ----
+    const previousX = this.position.x;
+    const previousZ = this.position.z;
     this._moveAxis('x', this.velocity.x * dt);
     this._moveAxis('z', this.velocity.z * dt);
+    const moved = Math.hypot(this.position.x - previousX, this.position.z - previousZ);
+    if (moved > 0.001) {
+      this._stepDistance += moved;
+      const stepLength = hasInput ? 1.38 : 1.58;
+      if (this._stepDistance >= stepLength) {
+        this._stepDistance %= stepLength;
+        this._stepSide *= -1;
+        const speedRatio = Math.min(1, Math.hypot(this.velocity.x, this.velocity.z) / PLAYER.moveSpeed);
+        this.onFootstep?.({ side: this._stepSide, intensity: 0.72 + speedRatio * 0.28 });
+      }
+    } else if (!hasInput) {
+      this._stepDistance = 0;
+    }
 
     this._syncCamera();
   }

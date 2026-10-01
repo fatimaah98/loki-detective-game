@@ -71,5 +71,8 @@ export const KEYS = {
   right: ['KeyD', 'ArrowRight'],
   interact: ['KeyE'],
   detective: ['Space'],
+  journal: ['KeyJ'],
+  timeline: ['KeyT'],
+  suspects: ['KeyU'],
   menu: ['Escape']
 };
