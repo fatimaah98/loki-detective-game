@@ -8,7 +8,9 @@ import { Lighting } from '../scene/Lighting.js';
 import { CrimeScene } from '../scene/CrimeScene.js';
 import { Player } from '../player/Player.js';
 import { EvidenceSystem } from '../evidence/EvidenceSystem.js';
-import { TIMELINE_RECONSTRUCTION } from '../case/caseData.js';
+import { ACCUSATION_REQUIREMENTS, TIMELINE_RECONSTRUCTION } from '../case/caseData.js';
+
+const EVIDENCE_TOTAL = 10;
 import { Footsteps } from '../audio/Footsteps.js';
 import { BackgroundMusic } from '../audio/BackgroundMusic.js';
 import { UI } from '../ui/UI.js';
@@ -94,8 +96,10 @@ export class Game {
         !locked &&
         (this.state.is(STATES.INVESTIGATION) || this.state.is(STATES.TIMELINE) || this.state.is(STATES.SUSPECTS)) &&
         !this.ui.isEvidenceOpen() &&
-        !this.ui.isJournalOpen() &&
-        !this.ui.isCasePanelOpen()
+        !this.ui.isCaseAlertActionable() &&
+        !this.ui.isCasePanelOpen() &&
+        !this.ui.isBoardOpen() &&
+        !this.ui.isAccusationOpen()
       ) {
         this.ui.showPause();
       }
@@ -104,12 +108,7 @@ export class Game {
     // Esc ⇒ منوی توقف
     this._offMenu = this.input.onPress('menu', () => {
       if (this.ui.isEndingOpen()) return;
-      if (this.ui.isAccusationOpen()) {
-        this.ui.closeAccusation();
-        this.state.set(STATES.INVESTIGATION);
-        this.input.requestLock();
-        return;
-      }
+      if (this.ui.isBoardOpen() || this.ui.isAccusationOpen()) return;
       if (this.ui.isCasePanelOpen()) {
         this.ui.closeCaseViews();
         this.state.set(STATES.INVESTIGATION);
@@ -122,7 +121,7 @@ export class Game {
     });
 
     this._offInteract = this.input.onPress('interact', () => {
-      if (!this.state.is(STATES.INVESTIGATION) || this.ui.isEvidenceOpen() || this.ui.isJournalOpen()) return;
+      if (!this.state.is(STATES.INVESTIGATION) || this.ui.isEvidenceOpen()) return;
       const evidence = this.evidence.inspectCurrent();
       if (!evidence) return;
       this.input.exitLock();
@@ -132,44 +131,24 @@ export class Game {
       if (
         !this.state.is(STATES.INVESTIGATION) ||
         !this.input.locked ||
-        this.ui.isEvidenceOpen() ||
-        this.ui.isJournalOpen()
+        this.ui.isEvidenceOpen()
       ) return;
       this.evidence.activateDetectiveMode();
     });
 
-    this._offJournal = this.input.onPress('journal', () => {
-      if (!this.state.is(STATES.INVESTIGATION) || this.ui.isEvidenceOpen() || this.ui.isCasePanelOpen()) return;
-      const opened = this.ui.toggleJournal(this.evidence.getCollected());
-      if (opened) this.input.exitLock();
-      else {
-        this.ui.setEvidenceTarget(this.evidence.current);
-        this.input.requestLock();
-      }
-    });
-
-    this._offTimeline = this.input.onPress('timeline', () => this.openCaseView('timeline'));
-    this._offSuspects = this.input.onPress('suspects', () => this.openCaseView('suspects'));
+    // J تا پیدا شدن همه شواهد غیرفعال است؛ پس از آن بازیکن را به مقر (وایت‌برد) می‌برد
+    this._offJournal = this.input.onPress('journal', () => this.openBoard());
 
     this.ui.onCloseEvidence = () => {
       this.ui.closeEvidence();
-      this.ui.setEvidenceTarget(this.evidence.current);
-      this.input.requestLock();
-    };
-    this.ui.onCloseJournal = () => {
-      this.ui.toggleJournal(this.evidence.getCollected());
-      this.ui.setEvidenceTarget(this.evidence.current);
-      this.input.requestLock();
-    };
-    this.ui.onToggleJournal = () => {
-      if (!this.state.is(STATES.INVESTIGATION) || this.ui.isCasePanelOpen()) return;
-      const opened = this.ui.toggleJournal(this.evidence.getCollected());
-      if (opened) this.input.exitLock();
-      else {
-        this.ui.setEvidenceTarget(this.evidence.current);
-        this.input.requestLock();
+      if (this.evidence.getCollected().length >= EVIDENCE_TOTAL) {
+        this.ui.showCaseAlert('همه شواهد را پیدا کردید، لطفاً به مقر برگردید.', { action: true });
+        return;
       }
+      this.ui.setEvidenceTarget(this.evidence.current);
+      this.input.requestLock();
     };
+    this.ui.onReturnToHQ = () => this.openBoard();
     this.ui.onOpenCaseView = (view, suspectId) => {
       if (suspectId) this.ui.selectSuspectById(suspectId);
       this.openCaseView(view);
@@ -180,32 +159,12 @@ export class Game {
       this.ui.setEvidenceTarget(this.evidence.current);
       this.input.requestLock();
     };
-    this.ui.onOpenEvidenceBoard = (evidenceId) => {
-      this.ui.closeCaseViews();
-      this.state.set(STATES.INVESTIGATION);
-      this.ui.toggleJournal(this.evidence.getCollected());
-      this.input.requestLock();
-      const card = this.ui.journalList.querySelector(`[data-evidence-id="${evidenceId}"]`);
-      card?.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    };
     this.ui.onTimelineReconstructed = () => {
       this.timelineReconstructed = true;
     };
     this.ui.onOpenAccusation = () => this.openAccusation();
-    this.ui.onCloseAccusation = () => {
-      this.ui.closeAccusation();
-      this.state.set(STATES.INVESTIGATION);
-      this.input.requestLock();
-    };
+    this.ui.onBoardTimeUp = () => this.openAccusation();
     this.ui.onSubmitAccusation = (accusation) => this.submitAccusation(accusation);
-    this.ui.onReturnToBoard = () => {
-      this.ui.closeEnding();
-      this.ui.toggleJournal(this.evidence.getCollected());
-      this.state.set(STATES.INVESTIGATION);
-      this.ui.enterInvestigation();
-      this.input.exitLock();
-    };
-    this.ui.onRetryAccusation = () => this.openAccusation();
     this.ui.onCloseEnding = () => {
       this.ui.closeEnding();
       this.state.set(STATES.INVESTIGATION);
@@ -222,22 +181,28 @@ export class Game {
   }
 
   openAccusation() {
-    const allowedStates = [STATES.INVESTIGATION, STATES.TIMELINE, STATES.SUSPECTS];
-    if (!this.timelineReconstructed || !allowedStates.some((state) => this.state.is(state))) return;
-    this.ui.showAccusation(this.evidence.getCollected(), this.timelineReconstructed);
+    if (!this.state.is(STATES.BOARD)) return;
+    this.ui.stopBoardTimer();
+    this.ui.showAccusation(this.evidence.getCollected());
     this.state.set(STATES.ACCUSATION);
+    this.input.exitLock();
+  }
+
+  openBoard() {
+    if (!this.state.is(STATES.INVESTIGATION) || this.ui.isEvidenceOpen()) return;
+    if (this.evidence.getCollected().length < EVIDENCE_TOTAL) return;
+    this.state.set(STATES.BOARD);
+    this.ui.showWhiteboard(this.evidence.getCollected());
     this.input.exitLock();
   }
 
   submitAccusation({ suspectId, proofIds }) {
     if (!this.state.is(STATES.ACCUSATION)) return;
-    const requiredProof = ['button', 'contract', 'message', 'timeline', 'footprints'];
-    const collectedIds = new Set(this.evidence.getCollected().map((item) => item.id));
-    const evidenceProof = requiredProof
-      .filter((proofId) => proofId !== 'timeline')
-      .every((proofId) => collectedIds.has(proofId));
-    const allSelected = requiredProof.every((proofId) => proofIds.includes(proofId));
-    const solved = suspectId === 'daniel' && this.timelineReconstructed && evidenceProof && allSelected;
+    const correctCauses = new Set(ACCUSATION_REQUIREMENTS.filter((item) => item.correct).map((item) => item.id));
+    const selectedCauses = new Set(proofIds);
+    const allCausesCorrect = selectedCauses.size === correctCauses.size &&
+      [...correctCauses].every((causeId) => selectedCauses.has(causeId));
+    const solved = suspectId === 'daniel' && allCausesCorrect;
     this.lastAccusationSolved = solved;
     this.state.set(solved ? STATES.SOLVED : STATES.FAILED);
   }
@@ -250,7 +215,7 @@ export class Game {
       room: this.room,
       crimeScene: this.crimeScene,
       onTarget: (evidence) => this.ui.setEvidenceTarget(evidence),
-      onInspect: (evidence, count) => this.ui.showEvidence(evidence, count, this.evidence.getCollected()),
+      onInspect: (evidence, count) => this.ui.showEvidence(evidence, count),
       onDetectiveMode: (active, duration) => this.ui.setDetectiveMode(active, duration)
     });
   }
@@ -311,6 +276,10 @@ export class Game {
     this.state.set(STATES.INVESTIGATION);
     this.ui.enterInvestigation(); // اطمینان از بسته‌شدن منو/توقف حتی اگر حالت تغییر نکرده باشد
     this.input.requestLock();
+    if (!this._huntAlertShown) {
+      this._huntAlertShown = true;
+      this.ui.showCaseAlert('کارآگاه، لطفاً شواهد را پیدا کنید.');
+    }
   }
 
   _loop() {
@@ -321,12 +290,14 @@ export class Game {
     const dt = Math.min(this._clock.getDelta(), 0.05);
 
     if (this.state.is(STATES.INVESTIGATION) || this.state.is(STATES.TIMELINE) || this.state.is(STATES.SUSPECTS)) {
-      if (!this.ui.isEvidenceOpen() && !this.ui.isJournalOpen() && this.input.locked) {
+      if (!this.ui.isEvidenceOpen() && this.input.locked) {
         this.player.update(dt);
       }
       if (this.state.is(STATES.INVESTIGATION)) this.evidence.update();
     }
 
+    // در مقر (وایت‌برد تمام‌صفحه) اتاق دیده نمی‌شود؛ رندر صحنه لازم نیست
+    if (this.state.is(STATES.BOARD)) return;
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -339,8 +310,7 @@ export class Game {
     this._offInteract?.();
     this._offDetective?.();
     this._offJournal?.();
-    this._offTimeline?.();
-    this._offSuspects?.();
+    this.ui.stopBoardTimer();
     this._offState?.();
     this.evidence.dispose();
     this.footsteps.dispose();

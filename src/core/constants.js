@@ -56,6 +56,7 @@ export const STATES = Object.freeze({
   INTRO: 'INTRO',
   INVESTIGATION: 'INVESTIGATION',
   EVIDENCE: 'EVIDENCE',
+  BOARD: 'BOARD',
   SUSPECTS: 'SUSPECTS',
   TIMELINE: 'TIMELINE',
   ACCUSATION: 'ACCUSATION',
@@ -72,7 +73,5 @@ export const KEYS = {
   interact: ['KeyE'],
   detective: ['Space'],
   journal: ['KeyJ'],
-  timeline: ['KeyT'],
-  suspects: ['KeyU'],
   menu: ['Escape']
 };

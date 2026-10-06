@@ -49,6 +49,7 @@ export const SUSPECTS = [
     relation: 'نامزد النا',
     color: '#7e5748',
     initials: 'د م',
+    portrait: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=480&q=85',
     statement: 'می‌گوید حدود ساعت ۲۱:۴۵ خانه را ترک کرده و پس از آن النا را ندیده است. قبل از آنکه خانه را ترک کند با النا مشاجره شدیدی داشته چرا که النا مدت ها به او بی‌توجهی می‌کرده است.',
     dossier: 'رابطه آن‌ها در هفته‌های اخیر پرتنش بود. مشاجره‌هایشان باعث می‌شود دیوید در نگاه اول مظنون به نظر برسد.',
     redHerring: 'رابطه خراب، انگیزه احتمالی را القا می‌کند؛ اما ثبت دوربین خروج او در ۲۱:۴۷ از ادعایش پشتیبانی می‌کند و شاهدی او را به قتل وصل نمی‌کند.',
@@ -61,6 +62,7 @@ export const SUSPECTS = [
     relation: 'خواهر ناتنی النا',
     color: '#66715e',
     initials: 'س ک',
+    portrait: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=480&q=85',
     statement: 'می‌گوید حدود ساعت ۲۲:۴۰ خانه را ترک کرده است. با النا قرار داشت امروز درباره اختلافاتشان حرف بزنند اما النا قرار را کنسل کرده بود بنابراین او راهی خانه النا شد. دیوید در ادامه اظهاراتش نوشته بود سارا و النا مدتی از هم دور بودند و اختلاف مالی داشتند. عطر او در اتاق حس شده است، اما این موضوع زمان حضورش را تعیین نمی‌کند.',
     dossier: 'میان او و النا بر سر مسائل مالی و ارث اختلاف وجود داشت. عطر سارا در اتاق حس شده، اما این موضوع زمان حضورش را تعیین نمی‌کند.',
     redHerring: 'اختلاف مالی و عطر او سرنخ‌های گمراه‌کننده‌اند. زمان خروجش دقیق نیست، ولی در صحنه مدرک مستقیمی که او را به قتل وصل کند پیدا نشده است.',
@@ -73,6 +75,7 @@ export const SUSPECTS = [
     relation: 'شریک تجاری النا',
     color: '#536273',
     initials: 'د ر',
+    portrait: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=480&q=85',
     statement: 'او ادعا کرده است قرار شام با النا داشته در رستوران بلک وود و هرچه منتظر شده او نیامده بنابراین تصمیم گرفته به دیدنش برود اما با دیوید روبرو شده است.',
     dossier: 'النا به اختلاس از شرکت پی برده بود و می‌خواست آن را افشا کند. دنیل برای گفت‌وگو در همان شب قرار داشت.',
     redHerring: 'برخلاف دیوید و سارا، چند شاهد مستقل ادعای دنیل را نقض می‌کنند: دکمه کنار میز، رد حضور، قرارداد مالی و پیام قرار.',
@@ -103,9 +106,12 @@ export const EVIDENCE_LABELS = {
 };
 
 export const ACCUSATION_REQUIREMENTS = [
-  { id: 'button', label: 'دکمه لباس دنیل', sourceId: 'button' },
-  { id: 'contract', label: 'قرارداد مالی', sourceId: 'contract' },
-  { id: 'message', label: 'پیام آخر النا', sourceId: 'message' },
-  { id: 'timeline', label: 'بازسازی Timeline', sourceId: null },
-  { id: 'footprints', label: 'شواهد حضور دنیل', sourceId: 'footprints' }
+  { id: 'embezzlement', label: 'دنیل از شرکت اختلاس کرده بود.', sourceId: 'contract', correct: true },
+  { id: 'exposure', label: 'النا قصد داشت حقیقت را همان شب افشا کند.', sourceId: 'message', correct: true },
+  { id: 'button', label: 'دکمه دنیل در صحنه جا مانده بود.', sourceId: 'button', correct: true },
+  { id: 'presence', label: 'رد حضور، انکار دنیل را نقض می‌کند.', sourceId: 'footprints', correct: true },
+  { id: 'staged-scene', label: 'دنیل صحنه را شبیه خودکشی چید.', sourceId: 'chair', correct: true },
+  { id: 'david-argument', label: 'مشاجره دیوید علت قتل بود.', sourceId: 'camera', correct: false },
+  { id: 'sara-dispute', label: 'اختلاف مالی سارا با النا علت قتل بود.', sourceId: 'glasses', correct: false },
+  { id: 'suicide', label: 'النا خودکشی کرده بود.', sourceId: 'rope', correct: false }
 ];

@@ -25,11 +25,6 @@ export class UI {
 
       <div class="crosshair hidden" id="crosshair"></div>
 
-      <button class="journal-toggle hidden" id="journal-toggle" type="button">دفتر شواهد <span>J</span></button>
-      <nav class="case-nav hidden" id="case-nav" aria-label="پرونده">
-        <button type="button" data-case-view="timeline">خط زمانی</button>
-        <button type="button" data-case-view="suspects">مظنون‌ها</button>
-      </nav>
       <div class="evidence-prompt hidden" id="evidence-prompt">بررسی <kbd>E</kbd></div>
       <div class="detective-status hidden" id="detective-status">حالت کارآگاه <span id="detective-timer"></span></div>
 
@@ -45,21 +40,41 @@ export class UI {
         </div>
       </div>
 
-      <aside class="evidence-journal hidden" id="evidence-journal" aria-label="دفتر شواهد">
-        <header class="journal-header">
+      <div class="case-alert hidden" id="case-alert" role="status" aria-live="polite">
+        <span class="case-alert-icon" aria-hidden="true">!</span>
+        <p class="case-alert-text" id="case-alert-text"></p>
+        <button class="btn case-alert-ok hidden" id="case-alert-ok" type="button">باشه</button>
+      </div>
+
+      <section class="whiteboard hidden" id="whiteboard" aria-labelledby="whiteboard-title">
+        <header class="whiteboard-header">
           <div>
-            <div class="story-kicker">پرونده: اتاق خاموش</div>
-            <h2>شواهد پرونده</h2>
+            <div class="story-kicker">مقر کارآگاه لوکی</div>
+            <h2 id="whiteboard-title">پرونده: اتاق خاموش</h2>
           </div>
-          <button class="journal-close" id="journal-close" type="button" aria-label="بستن دفتر">×</button>
+          <span class="board-countdown" id="board-countdown" aria-live="polite"></span>
         </header>
-        <p class="journal-progress" id="journal-progress">۰ از ۱۰ شاهد بررسی شده</p>
-        <p class="journal-hint">برای پیوند، دو مورد را انتخاب کنید.</p>
-        <div class="journal-list" id="journal-list"></div>
-        <section class="relation-result hidden" id="relation-result" aria-live="polite"></section>
-        <button class="relation-clear hidden" id="relation-clear" type="button">پاک‌کردن انتخاب‌ها</button>
-        <button class="btn accusation-start" id="accusation-start" type="button" disabled>پایان بررسی و شناسایی قاتل</button>
-      </aside>
+        <div class="whiteboard-surface">
+          <section class="wb-group wb-victim-group">
+            <h3 class="wb-label">مقتول</h3>
+            <figure class="wb-victim">
+              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=480&q=85" alt="النا وودز">
+              <figcaption>النا وودز · ۳۳ ساله</figcaption>
+            </figure>
+          </section>
+          <section class="wb-group">
+            <h3 class="wb-label">اظهارات مظنون‌ها</h3>
+            <div class="wb-notes wb-statements" id="wb-statements"></div>
+          </section>
+          <section class="wb-group">
+            <h3 class="wb-label">شواهد صحنه</h3>
+            <div class="wb-notes wb-evidence" id="wb-evidence"></div>
+          </section>
+        </div>
+        <footer class="whiteboard-footer">
+          <button class="btn accusation-start" id="accusation-start" type="button">بررسی و شناسایی قاتل</button>
+        </footer>
+      </section>
 
       <section class="case-panel hidden" id="timeline-panel" aria-labelledby="timeline-title">
         <header class="journal-header">
@@ -88,14 +103,13 @@ export class UI {
       <section class="case-panel accusation-panel hidden" id="accusation-panel" aria-labelledby="accusation-title">
         <header class="journal-header">
           <div><div class="story-kicker">جمع‌بندی پرونده</div><h2 id="accusation-title">قاتل را شناسایی کنید</h2></div>
-          <button class="journal-close" type="button" data-close-accusation aria-label="بازگشت">×</button>
         </header>
-        <p class="case-panel-hint">یک مظنون و تمام شواهد لازم برای اثبات اتهام را انتخاب کنید.</p>
+        <p class="case-panel-hint">قاتل را انتخاب کنید و علت‌های درست را با توجه به شواهد علامت بزنید.</p>
         <div class="accusation-suspects" id="accusation-suspects"></div>
-        <h3 class="proof-heading">شواهد اثباتی</h3>
+        <h3 class="proof-heading">علت‌ها و شواهد قتل</h3>
         <div class="proof-list" id="proof-list"></div>
         <p class="proof-status" id="proof-status" aria-live="polite"></p>
-        <button class="btn accuse-submit" id="accuse-submit" type="button" disabled>ثبت اتهام</button>
+        <button class="btn accuse-submit" id="accuse-submit" type="button">ثبت پاسخ</button>
       </section>
 
       <section class="case-panel ending-panel hidden" id="ending-panel" aria-labelledby="ending-title">
@@ -105,10 +119,6 @@ export class UI {
         <div class="true-timeline hidden" id="true-timeline">
           <h3>خط زمانی واقعی قتل</h3>
           <ol id="true-timeline-list"></ol>
-        </div>
-        <div class="ending-actions" id="failed-actions">
-          <button class="btn" id="return-board" type="button">بازگشت به Evidence Board</button>
-          <button class="btn ghost" id="retry-accusation" type="button">تلاش دوباره</button>
         </div>
         <button class="btn ending-close hidden" id="ending-close" type="button">بازگشت به صحنه</button>
       </section>
@@ -147,7 +157,7 @@ export class UI {
             <li><span>نگاه کردن</span> <span class="key">ماوس</span></li>
             <li><span>بررسی</span> <span class="key">E</span></li>
             <li><span>حالت کارآگاه</span> <span class="key">Space</span></li>
-            <li><span>دفتر شواهد</span> <span class="key">J</span></li>
+            <li><span>بازگشت به مقر (پس از یافتن همه شواهد)</span> <span class="key">J</span></li>
             <li><span>منو</span> <span class="key">Esc</span></li>
             <li><span>شروع</span> <span class="key">کلیک</span></li>
           </ul>
@@ -171,28 +181,29 @@ export class UI {
     this.crosshair = this.root.querySelector('#crosshair');
     this.evidencePrompt = this.root.querySelector('#evidence-prompt');
     this.evidenceDetail = this.root.querySelector('#evidence-detail');
-    this.journal = this.root.querySelector('#evidence-journal');
-    this.journalList = this.root.querySelector('#journal-list');
-    this.journalProgress = this.root.querySelector('#journal-progress');
-    this.relationResult = this.root.querySelector('#relation-result');
-    this.relationClear = this.root.querySelector('#relation-clear');
+    this.caseAlert = this.root.querySelector('#case-alert');
+    this.caseAlertText = this.root.querySelector('#case-alert-text');
+    this.caseAlertOk = this.root.querySelector('#case-alert-ok');
+    this._caseAlertTimer = 0;
+    this.whiteboard = this.root.querySelector('#whiteboard');
     this.detectiveStatus = this.root.querySelector('#detective-status');
     this.detectiveTimer = this.root.querySelector('#detective-timer');
-    this.selectedEvidence = [];
     this._detectiveInterval = 0;
     this.timelinePanel = this.root.querySelector('#timeline-panel');
     this.suspectsPanel = this.root.querySelector('#suspects-panel');
     this.accusationPanel = this.root.querySelector('#accusation-panel');
     this.endingPanel = this.root.querySelector('#ending-panel');
-    this.caseNav = this.root.querySelector('#case-nav');
     this.timelineMode = 'official';
     this.selectedSuspect = 'david';
     this.collectedEvidence = [];
     this.selectedAccusationSuspect = null;
     this.selectedProof = new Set();
+    this._boardInterval = 0;
+    this._boardEndsAt = 0;
+    this.boardCountdown = this.root.querySelector('#board-countdown');
     this.timelineReconstructed = false;
     this.onCloseEvidence = null;
-    this.onCloseJournal = null;
+    this.onReturnToHQ = null;
     this.storyIntro = this.root.querySelector('#story-intro');
     this.menu = this.root.querySelector('#menu');
     this.pause = this.root.querySelector('#pause');
@@ -206,7 +217,6 @@ export class UI {
     this.root.querySelector('#intro-continue').addEventListener('click', () => {
       this.onIntroContinue?.();
     });
-    this.root.querySelector('[data-close-accusation]').addEventListener('click', () => this.onCloseAccusation?.());
     this.root.querySelector('#accusation-suspects').addEventListener('click', (event) => {
       const button = event.target.closest('[data-accused-id]');
       if (button) this.selectAccused(button.dataset.accusedId);
@@ -219,17 +229,10 @@ export class UI {
       suspectId: this.selectedAccusationSuspect,
       proofIds: [...this.selectedProof]
     }));
-    this.root.querySelector('#return-board').addEventListener('click', () => this.onReturnToBoard?.());
-    this.root.querySelector('#retry-accusation').addEventListener('click', () => this.onRetryAccusation?.());
     this.root.querySelector('#ending-close').addEventListener('click', () => this.onCloseEnding?.());
     this.root.querySelector('#accusation-start').addEventListener('click', () => this.onOpenAccusation?.());
     this.root.querySelector('#evidence-close').addEventListener('click', () => this.onCloseEvidence?.());
-    this.root.querySelector('#journal-close').addEventListener('click', () => this.onCloseJournal?.());
-    this.root.querySelector('#journal-toggle').addEventListener('click', () => this.onToggleJournal?.());
-    this.caseNav.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-case-view]');
-      if (button) this.onOpenCaseView?.(button.dataset.caseView);
-    });
+    this.caseAlertOk.addEventListener('click', () => this.onReturnToHQ?.());
     this.root.querySelectorAll('[data-close-case]').forEach((button) => {
       button.addEventListener('click', () => this.onCloseCaseView?.());
     });
@@ -240,22 +243,6 @@ export class UI {
     this.root.querySelector('#suspect-list').addEventListener('click', (event) => {
       const button = event.target.closest('[data-suspect-id]');
       if (button) this.selectSuspect(button.dataset.suspectId);
-    });
-    this.root.querySelector('#timeline-list').addEventListener('click', (event) => {
-      const button = event.target.closest('[data-evidence-link]');
-      if (button) this.onOpenEvidenceBoard?.(button.dataset.evidenceLink);
-    });
-    this.journalList.addEventListener('click', (event) => {
-      const button = event.target.closest('[data-suspect-view]');
-      if (button) this.onOpenCaseView?.('suspects', button.dataset.suspectView);
-    });
-    this.journalList.addEventListener('click', (event) => {
-      const item = event.target.closest('[data-evidence-id]');
-      if (item) this._toggleEvidenceSelection(item.dataset.evidenceId);
-    });
-    this.relationClear.addEventListener('click', () => {
-      this.selectedEvidence = [];
-      this._updateSelectedEvidence();
     });
   }
 
@@ -281,13 +268,10 @@ export class UI {
     this.menu.classList.add('hidden');
     this.pause.classList.add('hidden');
     this.crosshair.classList.remove('hidden');
-    this.root.querySelector('#journal-toggle').classList.remove('hidden');
-    this.caseNav.classList.remove('hidden');
   }
 
   showCaseView(view, collected) {
     this.closeCaseViews();
-    this.journal.classList.add('hidden');
     this.collectedEvidence = collected;
     this.evidencePrompt.classList.add('hidden');
     if (view === 'timeline') {
@@ -380,14 +364,14 @@ export class UI {
     if (SUSPECTS.some((suspect) => suspect.id === id)) this.selectedSuspect = id;
   }
 
-  showAccusation(collected, timelineReconstructed) {
+  showAccusation(collected) {
     this.closeCaseViews();
-    this.journal.classList.add('hidden');
+    this.whiteboard.classList.add('hidden');
     this.evidenceDetail.classList.add('hidden');
     this.endingPanel.classList.add('hidden');
     this.accusationPanel.classList.remove('hidden');
+    this.crosshair.classList.add('hidden');
     this.collectedEvidence = collected;
-    this.timelineReconstructed = timelineReconstructed;
     this.selectedAccusationSuspect = null;
     this.selectedProof.clear();
     this.renderAccusation();
@@ -396,15 +380,15 @@ export class UI {
   renderAccusation() {
     this.root.querySelector('#accusation-suspects').innerHTML = SUSPECTS.map((suspect) => `
       <button class="accusation-suspect${suspect.id === this.selectedAccusationSuspect ? ' selected' : ''}" type="button" data-accused-id="${suspect.id}" aria-pressed="${suspect.id === this.selectedAccusationSuspect}">
-        <span class="suspect-avatar" style="--suspect-color:${suspect.color}">${suspect.initials}</span>
+        <img class="accusation-portrait" src="${suspect.portrait}" alt="">
         <span><strong>${suspect.name}</strong><small>${suspect.age} ساله · ${suspect.relation}</small></span>
       </button>`).join('');
 
     const collectedIds = new Set(this.collectedEvidence.map((item) => item.id));
     this.root.querySelector('#proof-list').innerHTML = ACCUSATION_REQUIREMENTS.map((proof) => {
-      const available = proof.sourceId ? collectedIds.has(proof.sourceId) : this.timelineReconstructed;
+      const available = collectedIds.has(proof.sourceId);
       const selected = this.selectedProof.has(proof.id);
-      const hint = available ? 'آماده ارائه' : (proof.id === 'timeline' ? 'ابتدا بازسازی Timeline را ببینید' : 'ابتدا شاهد را در صحنه بررسی کنید');
+      const hint = available ? `شاهد: ${EVIDENCE_LABELS[proof.sourceId]}` : 'شاهد هنوز بررسی نشده';
       return `<label class="proof-option${available ? '' : ' unavailable'}${selected ? ' selected' : ''}">
         <input type="checkbox" data-proof-id="${proof.id}" ${available ? '' : 'disabled'} ${selected ? 'checked' : ''}>
         <span class="proof-check"></span><span>${proof.label}</span><small>${hint}</small>
@@ -427,9 +411,8 @@ export class UI {
   _updateAccusationStatus() {
     const submit = this.root.querySelector('#accuse-submit');
     const status = this.root.querySelector('#proof-status');
-    const hasAllProof = this.selectedProof.size === ACCUSATION_REQUIREMENTS.length;
-    submit.disabled = !this.selectedAccusationSuspect || !hasAllProof;
-    status.textContent = `${this.selectedProof.size} از ${ACCUSATION_REQUIREMENTS.length} مدرک انتخاب شده`;
+    submit.disabled = !this.selectedAccusationSuspect;
+    status.textContent = `${this.selectedProof.size} علت انتخاب شده`;
   }
 
   showEnding(solved, actualTimeline) {
@@ -439,21 +422,16 @@ export class UI {
     this.root.querySelector('#ending-kicker').textContent = solved ? 'حقیقت آشکار شد' : 'اتهام با شواهد کافی پشتیبانی نشد';
     this.root.querySelector('#ending-copy').textContent = solved
       ? 'دنیل رید، شریک تجاری النا، او را پس از تهدید به افشای اختلاس به قتل رساند و صحنه را شبیه خودکشی جلوه داد.'
-      : 'مظنون انتخاب‌شده قاتل نیست. می‌توانید به Evidence Board برگردید و با بررسی شواهد دوباره تلاش کنید.';
+      : 'قاتل یا علت قتل را اشتباه انتخاب کردید. زمان بررسی تمام شده و پرونده حل نشد.';
     this.root.querySelector('#true-timeline').classList.toggle('hidden', !solved);
     this.root.querySelector('#true-timeline-list').innerHTML = solved
       ? actualTimeline.map((item) => `<li><time>${item.time}</time><span>${item.label}</span></li>`).join('')
       : '';
-    this.root.querySelector('#failed-actions').classList.toggle('hidden', solved);
     this.root.querySelector('#ending-close').classList.toggle('hidden', !solved);
-    this.root.querySelector('#journal-toggle').classList.add('hidden');
-    this.caseNav.classList.add('hidden');
   }
 
   closeEnding() {
     this.endingPanel.classList.add('hidden');
-    this.root.querySelector('#journal-toggle').classList.remove('hidden');
-    this.caseNav.classList.remove('hidden');
   }
 
   isAccusationOpen() {
@@ -465,7 +443,7 @@ export class UI {
   }
 
   setEvidenceTarget(evidence) {
-    if (!evidence || this.evidenceDetail.classList.contains('open') || !this.journal.classList.contains('hidden')) {
+    if (!evidence || this.evidenceDetail.classList.contains('open') || this.isBoardOpen()) {
       this.evidencePrompt.classList.add('hidden');
       return;
     }
@@ -477,7 +455,7 @@ export class UI {
     this.evidencePrompt.classList.remove('hidden');
   }
 
-  showEvidence(evidence, collectedCount, collected) {
+  showEvidence(evidence, collectedCount) {
     this.evidencePrompt.classList.add('hidden');
     this.root.querySelector('#evidence-number').textContent = `شاهد ${String(collectedCount).padStart(2, '۰')} از ۱۰`;
     this.root.querySelector('#evidence-title').textContent = evidence.title;
@@ -485,7 +463,6 @@ export class UI {
     this.root.querySelector('#evidence-count').textContent = `${collectedCount} از ۱۰ شاهد ثبت شد`;
     this.evidenceDetail.classList.remove('hidden');
     requestAnimationFrame(() => this.evidenceDetail.classList.add('open'));
-    this.renderJournal(collected);
   }
 
   setDetectiveMode(active, duration = 0) {
@@ -510,107 +487,85 @@ export class UI {
     this.evidenceDetail.classList.add('hidden');
   }
 
-  toggleJournal(collected) {
-    const opening = this.journal.classList.contains('hidden');
-    if (opening) {
-      this.renderJournal(collected);
-      this.journal.classList.remove('hidden');
-      this.evidencePrompt.classList.add('hidden');
-    } else {
-      this.journal.classList.add('hidden');
-    }
-    return opening;
+  /** هشدار پایین‌چپ صفحه؛ با action دکمه «باشه» نمایش داده می‌شود و تا کلیک می‌ماند */
+  showCaseAlert(message, { action = false, duration = 6500 } = {}) {
+    window.clearTimeout(this._caseAlertTimer);
+    this.caseAlertText.textContent = message;
+    this.caseAlertOk.classList.toggle('hidden', !action);
+    this.caseAlert.classList.toggle('actionable', action);
+    this.caseAlert.classList.remove('hidden', 'leaving');
+    if (!action) this._caseAlertTimer = window.setTimeout(() => this.hideCaseAlert(), duration);
   }
 
-  renderJournal(collected) {
-    const collectedIds = new Set(collected.map((item) => item.id));
-    this.selectedEvidence = this.selectedEvidence.filter((id) => id.endsWith('-claim') || collectedIds.has(id));
-    this.journalProgress.textContent = `${collected.length} از ۱۰ شاهد بررسی شده`;
-    const cards = collected.map((evidence, index) => `
-      <button class="journal-item${this.selectedEvidence.includes(evidence.id) ? ' selected' : ''}" type="button" data-evidence-id="${evidence.id}" aria-pressed="${this.selectedEvidence.includes(evidence.id)}">
-        <span class="journal-index">${String(index + 1).padStart(2, '۰')}</span>
-        <span class="journal-item-copy"><strong>${evidence.title}</strong><span>${evidence.description}</span></span>
-      </button>
-    `);
-    cards.push(...SUSPECTS.map((suspect) => `
-      <button class="journal-item statement-item${this.selectedEvidence.includes(`${suspect.id}-claim`) ? ' selected' : ''}" type="button" data-evidence-id="${suspect.id}-claim" aria-pressed="${this.selectedEvidence.includes(`${suspect.id}-claim`)}">
-        <span class="journal-index">!</span>
-        <span class="journal-item-copy"><strong>اظهار ${suspect.name}: ${suspect.relation}</strong><span>${suspect.statement}</span></span>
-      </button>
-    `));
-    cards.push(...SUSPECTS.map((suspect) => `
-      <button class="journal-item suspect-link" type="button" data-suspect-view="${suspect.id}">
-        <span class="journal-index">?</span>
-        <span class="journal-item-copy"><strong>پرونده ${suspect.name}</strong><span>اظهارات و شواهد مرتبط را مقایسه کنید.</span></span>
-      </button>`));
-    if (!collected.length) cards.unshift('<p class="journal-empty">هنوز هیچ شاهدی ثبت نشده است.</p>');
-    this.journalList.innerHTML = cards.join('');
-    const accusationStart = this.root.querySelector('#accusation-start');
-    accusationStart.disabled = false;
-    accusationStart.title = '';
-    this._updateSelectedEvidence();
+  hideCaseAlert() {
+    window.clearTimeout(this._caseAlertTimer);
+    if (this.caseAlert.classList.contains('hidden')) return;
+    this.caseAlert.classList.add('leaving');
+    this._caseAlertTimer = window.setTimeout(() => {
+      this.caseAlert.classList.add('hidden');
+      this.caseAlert.classList.remove('leaving', 'actionable');
+    }, 300);
   }
 
-  _toggleEvidenceSelection(id) {
-    if (this.selectedEvidence.includes(id)) {
-      this.selectedEvidence = this.selectedEvidence.filter((selected) => selected !== id);
-    } else if (this.selectedEvidence.length < 2) {
-      this.selectedEvidence.push(id);
-    } else {
-      this.selectedEvidence = [this.selectedEvidence[1], id];
-    }
-    this._updateSelectedEvidence();
+  isCaseAlertActionable() {
+    return !this.caseAlert.classList.contains('hidden') && this.caseAlert.classList.contains('actionable');
   }
 
-  _updateSelectedEvidence() {
-    for (const item of this.journalList.querySelectorAll('[data-evidence-id]')) {
-      const selected = this.selectedEvidence.includes(item.dataset.evidenceId);
-      item.classList.toggle('selected', selected);
-      item.setAttribute('aria-pressed', String(selected));
+  renderWhiteboard(collected) {
+    this.root.querySelector('#wb-statements').innerHTML = SUSPECTS.map((suspect, index) => `
+      <article class="wb-sticky wb-statement" style="--note-rotation:${[-1.6, 1.2, -0.8][index % 3]}deg">
+        <header class="wb-sticky-head">
+          <img src="${suspect.portrait}" alt="">
+          <span><strong>${suspect.name}</strong><small>${suspect.age} ساله · ${suspect.relation}</small></span>
+        </header>
+        <p>«${suspect.statement}»</p>
+      </article>`).join('');
+    const digits = new Intl.NumberFormat('fa-IR', { minimumIntegerDigits: 2 });
+    this.root.querySelector('#wb-evidence').innerHTML = collected.map((evidence, index) => `
+      <article class="wb-sticky wb-evidence-note" style="--note-rotation:${[1.4, -1.1, 0.6, -1.8, 1][index % 5]}deg">
+        <span class="wb-index">${digits.format(index + 1)}</span>
+        <strong>${evidence.title}</strong>
+        <p>${evidence.description}</p>
+      </article>`).join('');
+  }
+
+  showWhiteboard(collected) {
+    this.hideCaseAlert();
+    this.closeEvidence();
+    this.evidencePrompt.classList.add('hidden');
+    this.crosshair.classList.add('hidden');
+    this.setDetectiveMode(false);
+    this.renderWhiteboard(collected);
+    this.whiteboard.classList.remove('hidden');
+    this.whiteboard.scrollTop = 0;
+    this.stopBoardTimer();
+    this._boardEndsAt = performance.now() + 60000;
+    this._updateBoardCountdown();
+    this._boardInterval = window.setInterval(() => this._updateBoardCountdown(), 200);
+  }
+
+  _updateBoardCountdown() {
+    const remaining = Math.max(0, this._boardEndsAt - performance.now());
+    const seconds = Math.ceil(remaining / 1000);
+    const digits = new Intl.NumberFormat('fa-IR', { minimumIntegerDigits: 2 });
+    this.boardCountdown.textContent = `زمان باقی‌مانده: ${new Intl.NumberFormat('fa-IR').format(Math.floor(seconds / 60))}:${digits.format(seconds % 60)}`;
+    if (remaining <= 0) {
+      this.stopBoardTimer();
+      this.onBoardTimeUp?.();
     }
-    const selected = this.selectedEvidence;
-    this.relationClear.classList.toggle('hidden', selected.length === 0);
-    if (selected.length !== 2) {
-      this.relationResult.classList.add('hidden');
-      return;
-    }
-    const titles = new Map([...this.journalList.querySelectorAll('[data-evidence-id]')].map((item) => [
-      item.dataset.evidenceId,
-      item.querySelector('strong')?.textContent || ''
-    ]));
-    const pair = new Set(selected);
-    let result = `این دو مورد را کنار هم بگذارید: «${titles.get(selected[0])}» و «${titles.get(selected[1])}». این ارتباط را با زمان‌بندی و گفته‌های افراد مقایسه کنید.`;
-    if (pair.has('button') && pair.has('daniel-claim')) {
-      result = 'دنیل ادعا کرده که هرگز وارد خانه نشده است، اما دکمه لباس او در محل حادثه پیدا شده است.';
-    } else if (pair.has('footprints') && pair.has('daniel-claim')) {
-      result = 'رد حضور در اتاق با انکار دنیل ناسازگار است؛ زمان دقیق ورود باید با ثبت دوربین و ساعت متوقف‌شده سنجیده شود.';
-    } else if (pair.has('camera') && pair.has('david-claim')) {
-      result = 'دوربین خروج دیوید را در ۲۱:۴۷ ثبت کرده است؛ این زمان با گفته او که حدود ۲۱:۴۵ خارج شده بود، اختلافی کوتاه و قابل‌توضیح دارد.';
-    } else if (pair.has('footprints') && pair.has('sara-claim')) {
-      result = 'ردها حضور فردی را در اتاق ثابت می‌کنند، نه هویت او را؛ زمان خروج نامشخص سارا به‌تنهایی این رد را به او وصل نمی‌کند.';
-    } else if (pair.has('contract') && pair.has('message')) {
-      result = 'قرارداد، دستکاری مالی در شرکت را نشان می‌دهد؛ پیام آخر النا با قرار رویارویی همان شب سازگار است و برای دنیل انگیزه می‌سازد.';
-    } else if (pair.has('clock') && pair.has('camera')) {
-      result = 'زمان ثبت‌شده دوربین را با ساعت متوقف‌شده روی ۲۱:۵۲ مقایسه کنید؛ این دو سرنخ می‌توانند ترتیب رویدادها را روشن کنند.';
-    } else if (pair.has('glasses') && pair.has('body')) {
-      result = 'دو لیوان از حضور یک ملاقات‌کننده خبر می‌دهند؛ این نکته با تصویری که صحنه خودکشی نشان می‌دهد کاملاً جور نیست.';
-    } else if (pair.has('glasses') && pair.has('contract')) {
-      result = 'اختلاف مالی سارا او را مشکوک می‌کند، اما لیوان دوم فقط وجود یک ملاقات را ثابت می‌کند؛ به‌تنهایی هویت مهمان را مشخص نمی‌کند.';
-    } else if (pair.has('camera') && pair.has('glasses')) {
-      result = 'ثبت خروج دیوید در ۲۱:۴۷ با گفته او هم‌خوان است؛ لیوان دوم از دیداری پیش از آن خبر می‌دهد، نه حضور او هنگام قتل.';
-    } else if (pair.has('footprints') && pair.has('camera')) {
-      result = 'رد حضور داخل اتاق در کنار ثبت‌های بیرونی نشان می‌دهد فردی پس از خروج دیوید وارد شده است؛ ادعای عدم حضور دنیل زیر سؤال می‌رود.';
-    }
-    this.relationResult.textContent = result;
-    this.relationResult.classList.remove('hidden');
+  }
+
+  stopBoardTimer() {
+    window.clearInterval(this._boardInterval);
+    this._boardInterval = 0;
+  }
+
+  isBoardOpen() {
+    return !this.whiteboard.classList.contains('hidden');
   }
 
   isEvidenceOpen() {
     return !this.evidenceDetail.classList.contains('hidden');
-  }
-
-  isJournalOpen() {
-    return !this.journal.classList.contains('hidden');
   }
 
   showIntro() {
