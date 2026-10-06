@@ -33,6 +33,10 @@ export class UI {
           <div class="story-kicker" id="evidence-number">شاهد پرونده</div>
           <h2 class="evidence-title" id="evidence-title"></h2>
           <p class="evidence-description" id="evidence-description"></p>
+          <div class="evidence-phone hidden" id="evidence-phone">
+            <div class="evidence-phone-notch" aria-hidden="true"></div>
+            <ol class="evidence-phone-messages" id="evidence-phone-messages"></ol>
+          </div>
           <div class="evidence-actions">
             <span class="evidence-count" id="evidence-count"></span>
             <button class="btn evidence-close" id="evidence-close" type="button">بازگشت به بررسی</button>
@@ -419,15 +423,17 @@ export class UI {
     this.accusationPanel.classList.add('hidden');
     this.endingPanel.classList.remove('hidden');
     this.root.querySelector('#ending-title').textContent = solved ? 'پرونده حل شد' : 'پرونده هنوز حل نشده است';
-    this.root.querySelector('#ending-kicker').textContent = solved ? 'حقیقت آشکار شد' : 'اتهام با شواهد کافی پشتیبانی نشد';
+    this.root.querySelector('#ending-kicker').textContent = solved ? 'پایان بازی · حقیقت آشکار شد' : 'اتهام با شواهد کافی پشتیبانی نشد';
     this.root.querySelector('#ending-copy').textContent = solved
       ? 'دنیل رید، شریک تجاری النا، او را پس از تهدید به افشای اختلاس به قتل رساند و صحنه را شبیه خودکشی جلوه داد.'
-      : 'قاتل یا علت قتل را اشتباه انتخاب کردید. زمان بررسی تمام شده و پرونده حل نشد.';
+      : 'قاتل یا علت قتل را اشتباه انتخاب کردید. شواهد را دوباره مرور کنید و انتخاب دیگری انجام دهید.';
     this.root.querySelector('#true-timeline').classList.toggle('hidden', !solved);
     this.root.querySelector('#true-timeline-list').innerHTML = solved
       ? actualTimeline.map((item) => `<li><time>${item.time}</time><span>${item.label}</span></li>`).join('')
       : '';
-    this.root.querySelector('#ending-close').classList.toggle('hidden', !solved);
+    const closeButton = this.root.querySelector('#ending-close');
+    closeButton.textContent = solved ? 'بازگشت به منوی اصلی' : 'بازگشت به انتخاب قاتل';
+    closeButton.classList.remove('hidden');
   }
 
   closeEnding() {
@@ -460,9 +466,31 @@ export class UI {
     this.root.querySelector('#evidence-number').textContent = `شاهد ${String(collectedCount).padStart(2, '۰')} از ۱۰`;
     this.root.querySelector('#evidence-title').textContent = evidence.title;
     this.root.querySelector('#evidence-description').textContent = evidence.description;
+    this._renderPhoneMessages(evidence.messages);
     this.root.querySelector('#evidence-count').textContent = `${collectedCount} از ۱۰ شاهد ثبت شد`;
     this.evidenceDetail.classList.remove('hidden');
     requestAnimationFrame(() => this.evidenceDetail.classList.add('open'));
+  }
+
+  _renderPhoneMessages(messages) {
+    const phone = this.root.querySelector('#evidence-phone');
+    const list = this.root.querySelector('#evidence-phone-messages');
+    list.textContent = '';
+    phone.classList.toggle('hidden', !messages?.length);
+    for (const message of messages || []) {
+      const item = document.createElement('li');
+      item.className = `evidence-phone-message${message.latest ? ' latest' : ''}`;
+      const head = document.createElement('header');
+      const sender = document.createElement('strong');
+      sender.textContent = message.sender;
+      const time = document.createElement('time');
+      time.textContent = message.latest ? `${message.time} · آخرین پیام` : message.time;
+      head.append(sender, time);
+      const text = document.createElement('p');
+      text.textContent = message.text;
+      item.append(head, text);
+      list.append(item);
+    }
   }
 
   setDetectiveMode(active, duration = 0) {
@@ -526,6 +554,8 @@ export class UI {
         <span class="wb-index">${digits.format(index + 1)}</span>
         <strong>${evidence.title}</strong>
         <p>${evidence.description}</p>
+        ${evidence.messages ? `<ul class="wb-phone-messages">${evidence.messages.map((message) => `
+          <li><b>${message.sender} (${message.time}):</b> ${message.text}</li>`).join('')}</ul>` : ''}
       </article>`).join('');
   }
 

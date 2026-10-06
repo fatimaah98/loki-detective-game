@@ -167,9 +167,14 @@ export class Game {
     this.ui.onSubmitAccusation = (accusation) => this.submitAccusation(accusation);
     this.ui.onCloseEnding = () => {
       this.ui.closeEnding();
-      this.state.set(STATES.INVESTIGATION);
-      this.ui.enterInvestigation();
-      this.input.exitLock();
+      // پاسخ اشتباه ⇒ بازگشت به صفحه انتخاب قاتل برای تلاش دوباره
+      if (!this.lastAccusationSolved) {
+        this.ui.showAccusation(this.evidence.getCollected());
+        this.state.set(STATES.ACCUSATION);
+        return;
+      }
+      // پرونده حل شد ⇒ بازی تمام است؛ بارگذاری مجدد صفحه، بازی را از منوی اصلی با وضعیت تازه شروع می‌کند
+      window.location.reload();
     };
   }
 

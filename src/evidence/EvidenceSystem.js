@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { PHONE_MESSAGES } from './phoneMessages.js';
 
 const EVIDENCE_DATA = [
   {
@@ -38,8 +39,9 @@ const EVIDENCE_DATA = [
   },
   {
     id: 'message',
-    title: 'پیام آخر النا',
-    description: 'روی برگه نوشته شده است: «باید امشب همه چیز را تمام کنیم.» این پیام ممکن است انگیزه‌ای برای قتل را آشکار کند.',
+    title: 'موبایل النا',
+    description: 'موبایل مشکی النا روی میز مانده و صفحه‌اش شکسته است. آخرین پیام‌های ردوبدل‌شده بین او و دیوید، آخرین چیزی است که با این گوشی ارسال شده.',
+    messages: PHONE_MESSAGES,
     rootKey: 'messageMesh',
     radius: 0.3
   },
